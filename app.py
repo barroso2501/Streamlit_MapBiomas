@@ -587,7 +587,7 @@ with tab3:
             value=(1985, 2024),
         )
 
-    yr_cols = [str(y) for y in YEAR_COLS if year_range[0] <= int(y) <= year_range[1]]
+    yr_cols = [y for y in YEAR_COLS if year_range[0] <= int(y) <= year_range[1]]
 
     raw = cover_sel.copy()
     if class_filter == "Cultivos temporários":
