@@ -1,6 +1,6 @@
 """
 MapBiomas Observer — Cerrado, Amazônia e Mata Atlântica
-Coleção 10 | Cultivos temporários e dinâmica de uso do solo
+Coleção 10 | Pastagem, cultivos temporários e dinâmica de uso do solo
 """
 
 import streamlit as st
@@ -67,6 +67,7 @@ COLORS = {
 }
 
 TEMP_CROP_COLORS = {
+    "Pastagem":                   "#edde8e",
     "Soja":                       "#f5b3c8",
     "Cana-de-açúcar":             "#db7093",
     "Arroz":                      "#c71585",
@@ -82,6 +83,7 @@ BIOME_COLORS = {
 
 # ── Classes de cultivos temporários ─────────────────────────────────────────
 TEMP_CROP_IDS = {
+    15: "Pastagem",
     39: "Soja",
     20: "Cana-de-açúcar",
     40: "Arroz",
@@ -193,7 +195,7 @@ total_2024 = temp_sel[2024].sum() / 1e6
 soy_2024   = cover_sel[cover_sel["class_id"] == 39][2024].sum() / 1e6
 delta_pct  = (total_2024 - total_1985) / total_1985 * 100 if total_1985 > 0 else 0
 
-st.markdown("### 🌾 Cultivos Temporários nos biomas selecionados")
+st.markdown("### 🌾 Agropecuária nos biomas selecionados")
 c1, c2, c3, c4 = st.columns(4)
 c1.metric("Área total em 2024",     f"{total_2024:.2f} Mha")
 c2.metric("Área total em 1985",     f"{total_1985:.2f} Mha")
@@ -219,7 +221,7 @@ with tab1:
 
     with col_a:
         sel_classes = st.multiselect(
-            "Classes de cultivo",
+            "Classes",
             options=list(TEMP_CROP_IDS.values()),
             default=list(TEMP_CROP_IDS.values()),
         )
@@ -248,7 +250,7 @@ with tab1:
     filt_long["year"] = filt_long["year"].astype(int)
 
     # ── Gráfico 1: série temporal ─────────────────────────────────────────
-    st.subheader("Evolução temporal (1985–2024)")
+    st.subheader("Evolução temporal — pastagem e cultivos temporários (1985–2024)")
 
     if group_by == "Bioma":
         agg = (filt_long.groupby(["biome", "year"])["area_ha"]
@@ -584,7 +586,7 @@ with tab3:
         class_filter = st.selectbox(
             "Filtrar por classe",
             [
-                "Cultivos temporários",
+                "Pastagem e cultivos temporários",
                 "Agropecuária completa",
                 "Floresta",
                 "Vegetação não florestal",
@@ -601,7 +603,7 @@ with tab3:
     yr_cols = [y for y in YEAR_COLS if year_range[0] <= int(y) <= year_range[1]]
 
     raw = cover_sel.copy()
-    if class_filter == "Cultivos temporários":
+    if class_filter == "Pastagem e cultivos temporários":
         raw = raw[raw["class_id"].isin(TEMP_CROP_IDS.keys())]
     elif class_filter == "Agropecuária completa":
         raw = raw[raw["class_level_1"] == "3. Farming"]
