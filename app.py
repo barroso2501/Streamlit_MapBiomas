@@ -459,9 +459,20 @@ with tab2:
         )
     else:
         # ── Construção do Sankey ────────────────────────────────────────────
-        all_nodes  = list(pd.unique(sankey_agg[["source", "target"]].values.ravel()))
-        node_map   = {n: i for i, n in enumerate(all_nodes)}
-        node_colors = [get_color(n) for n in all_nodes]
+        # Separar nós de origem e destino com sufixo técnico para evitar fusão
+        # quando a mesma classe aparece nos dois lados (ex: Pastagem → Soja e
+        # Floresta → Pastagem fundiriam "Pastagem" num único nó, gerando alças).
+        SRC_SUFFIX = "__src"
+        TGT_SUFFIX = "__tgt"
+
+        src_keys = [s + SRC_SUFFIX for s in sankey_agg["source"]]
+        tgt_keys = [t + TGT_SUFFIX for t in sankey_agg["target"]]
+        all_keys    = list(dict.fromkeys(src_keys + tgt_keys))
+        node_map    = {k: i for i, k in enumerate(all_keys)}
+
+        # Label e cor sem sufixo técnico
+        node_labels = [k.replace(SRC_SUFFIX, "").replace(TGT_SUFFIX, "") for k in all_keys]
+        node_colors = [get_color(lbl) for lbl in node_labels]
         link_colors = [hex_to_rgba(get_color(s), 0.45) for s in sankey_agg["source"]]
 
         fig_sk = go.Figure(go.Sankey(
@@ -470,13 +481,13 @@ with tab2:
                 pad=18,
                 thickness=22,
                 line=dict(color="white", width=0.5),
-                label=all_nodes,
+                label=node_labels,
                 color=node_colors,
                 hovertemplate="<b>%{label}</b><br>Total: %{value:,.0f} ha<extra></extra>",
             ),
             link=dict(
-                source=[node_map[s] for s in sankey_agg["source"]],
-                target=[node_map[t] for t in sankey_agg["target"]],
+                source=[node_map[s + SRC_SUFFIX] for s in sankey_agg["source"]],
+                target=[node_map[t + TGT_SUFFIX] for t in sankey_agg["target"]],
                 value=sankey_agg["value"].tolist(),
                 color=link_colors,
                 hovertemplate=(
